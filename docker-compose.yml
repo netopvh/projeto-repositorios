@@ -1,0 +1,53 @@
+services:
+  db: 
+    image: mariadb:latest
+    container_name: neocredito_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=neocredito
+    ports:
+      - 3306:3306
+    volumes:
+      - db:/var/lib/mysql
+    restart: always
+    networks:
+      - default
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: neocredito_rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: always
+    networks:
+      - default
+
+  backend:
+    build: ./backend
+    container_name: neocredito_backend
+    ports:
+      - 3000:3000
+      - 3002:3002
+    networks:
+      - default
+    depends_on:
+      - rabbitmq
+      - db
+  
+  frontend:
+    build: ./frontend
+    container_name: neocredito_frontend
+    ports:
+      - 5173:5173
+    networks:
+      - default
+    depends_on:
+      - backend
+    
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  db:
